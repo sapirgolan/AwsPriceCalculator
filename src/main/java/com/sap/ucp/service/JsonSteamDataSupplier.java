@@ -47,10 +47,10 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         boolean hasNext = false;
         JsonToken nextToken = parser.nextToken();
         while (nextToken != JsonToken.END_OBJECT) {
-            if (nextToken == JsonToken.FIELD_NAME) {
+            if (isFieldName(nextToken)) {
                 String filedName = parser.getCurrentName();
                 if (StringUtils.equals(filedName, parent)) {
-                    return navigateToFirstPbjectInParent();
+                    return navigateToFirstObjectInParent();
                 }else {
                     nextToken = skipToNextToken();
                 }
@@ -61,8 +61,8 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         return hasNext;
     }
 
-    private boolean navigateToFirstPbjectInParent() throws IOException {
-        if (!JsonToken.START_OBJECT.equals(parser.nextToken()))
+    private boolean navigateToFirstObjectInParent() throws IOException {
+        if (!isBeginningOfObject(parser.nextToken()))
             return false;
         return true;
     }
@@ -81,7 +81,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         boolean validation = false;
         try {
             JsonToken token = parser.nextToken();
-            validation = JsonToken.START_OBJECT.equals(token);
+            validation = isBeginningOfObject(token);
         } catch (IOException e) {
             logger.error("Failed to parse 1'st token on JSON");
         }
@@ -101,10 +101,11 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         if (!hasNext)
             return false;
         try {
-            if (!JsonToken.FIELD_NAME.equals(parser.nextToken()))
-                return false;
             JsonToken token = parser.nextToken();
-            return JsonToken.START_OBJECT.equals(token);
+            if (!isFieldName(token))
+                return false;
+            token = parser.nextToken();
+            return isBeginningOfObject(token);
         } catch (IOException e) {
             logger.error("Failed to get next token.", e);
             return false;
@@ -120,5 +121,13 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             logger.error("Failed ", e);
         }
         return null;
+    }
+
+    private boolean isBeginningOfObject(JsonToken token) {
+        return JsonToken.START_OBJECT.equals(token);
+    }
+
+    private boolean isFieldName(JsonToken token) {
+        return JsonToken.FIELD_NAME.equals(token);
     }
 }
