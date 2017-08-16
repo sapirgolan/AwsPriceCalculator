@@ -36,27 +36,40 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             initParser(stream);
             if (!validateBeginningOfObject())
                 return;
-            JsonToken nextToken = parser.nextToken();
-            while (nextToken != JsonToken.END_OBJECT) {
-                if (nextToken == JsonToken.FIELD_NAME) {
-                    String filedName = parser.getCurrentName();
-                    if (StringUtils.equals(filedName, "products")) {
-                        hasNext = true;
-                        return;
-                    }else {
-                        parser.skipChildren();
-                        nextToken = parser.nextToken();
-                    }
-                } else {
-                    parser.skipChildren();
-                    nextToken = parser.nextToken();
-                }
-            }
-            if (!hasNext)
-                return;
+
+            hasNext = searchForParentByName("products");
         } catch (IOException e) {
             logger.error("Failed to create a parser for inputStream");
         }
+    }
+
+    private boolean searchForParentByName(String parent) throws IOException {
+        boolean hasNext = false;
+        JsonToken nextToken = parser.nextToken();
+        while (nextToken != JsonToken.END_OBJECT) {
+            if (nextToken == JsonToken.FIELD_NAME) {
+                String filedName = parser.getCurrentName();
+                if (StringUtils.equals(filedName, parent)) {
+                    return navigateToFirstPbjectInParent();
+                }else {
+                    nextToken = skipToNextToken();
+                }
+            } else {
+                nextToken = skipToNextToken();
+            }
+        }
+        return hasNext;
+    }
+
+    private boolean navigateToFirstPbjectInParent() throws IOException {
+        if (!JsonToken.START_OBJECT.equals(parser.nextToken()))
+            return false;
+        return true;
+    }
+
+    private JsonToken skipToNextToken() throws IOException {
+        parser.skipChildren();
+        return parser.nextToken();
     }
 
     private void initParser(InputStream stream) throws IOException {
@@ -75,24 +88,6 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         return validation;
     }
 
-    private void initObjectsStream(InputStream stream) {
-        try {
-            JsonToken token = parser.nextToken();
-            if (token == null) {
-                logger.error("Can't get any JSON Token from stream");
-                hasNext = false;
-                return;
-            }
-            if (!JsonToken.START_OBJECT.equals(token)) {
-                logger.error("Can't get any JSON Token of Object start from");
-                hasNext = false;
-                return;
-            }
-        } catch (IOException e) {
-            hasNext = false;
-        }
-    }
-
     private boolean isStreamNotAvailable(InputStream stream) {
         try {
             return stream == null || stream.available() < 1;
@@ -106,9 +101,12 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         if (!hasNext)
             return false;
         try {
+            if (!JsonToken.FIELD_NAME.equals(parser.nextToken()))
+                return false;
             JsonToken token = parser.nextToken();
             return JsonToken.START_OBJECT.equals(token);
         } catch (IOException e) {
+            logger.error("Failed to get next token.", e);
             return false;
         }
     }
@@ -117,12 +115,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     public T next() {
         try {
             TreeNode treeNode = parser.readValueAsTree();
-            Iterator<String> stringIterator = treeNode.fieldNames();
-            while (stringIterator.hasNext()) {
-                String fieldName = stringIterator.next();
-                TreeNode node = treeNode.get(fieldName);
-                return mapper.convertValue(node, type);
-            }
+            return treeNode == null ? null : mapper.convertValue(treeNode, type);
         } catch (IOException e) {
             logger.error("Failed ", e);
         }
