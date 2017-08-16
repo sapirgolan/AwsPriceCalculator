@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sap.ucp.parsers.JsonStrategy;
+import com.sap.ucp.parsers.ParserUtility;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by i062070 on 13/08/2017.
@@ -25,9 +30,8 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     static ObjectMapper mapper = new ObjectMapper();
     private JsonParser parser;
 
-
-    public JsonSteamDataSupplier(InputStream stream, Class<T> type) {
-        this.type = type;
+    public JsonSteamDataSupplier(InputStream stream, JsonStrategy strategy) {
+        this.type = strategy.getType();
 
         if (isStreamNotAvailable(stream)) {
             return;
@@ -37,63 +41,18 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             if (!validateBeginningOfObject())
                 return;
 
-            hasNext = searchForParentByName("products");
+            hasNext = searchForParentByName(strategy);
         } catch (IOException e) {
             logger.error("Failed to create a parser for inputStream");
         }
     }
 
-    private boolean searchForParentByName(String parent) throws IOException {
-        boolean hasNext = false;
-        JsonToken nextToken = parser.nextToken();
-        while (nextToken != JsonToken.END_OBJECT) {
-            if (isFieldName(nextToken)) {
-                String filedName = parser.getCurrentName();
-                if (StringUtils.equals(filedName, parent)) {
-                    return navigateToFirstObjectInParent();
-                }else {
-                    nextToken = skipToNextToken();
-                }
-            } else {
-                nextToken = skipToNextToken();
-            }
-        }
-        return hasNext;
+    public Stream<T> getStream() {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(this, 0),false);
     }
 
-    private boolean navigateToFirstObjectInParent() throws IOException {
-        if (!isBeginningOfObject(parser.nextToken()))
-            return false;
-        return true;
-    }
-
-    private JsonToken skipToNextToken() throws IOException {
-        parser.skipChildren();
-        return parser.nextToken();
-    }
-
-    private void initParser(InputStream stream) throws IOException {
-        parser = jsonFactory.createParser(stream);
-        parser.setCodec(mapper);
-    }
-
-    private boolean validateBeginningOfObject() {
-        boolean validation = false;
-        try {
-            JsonToken token = parser.nextToken();
-            validation = isBeginningOfObject(token);
-        } catch (IOException e) {
-            logger.error("Failed to parse 1'st token on JSON");
-        }
-        return validation;
-    }
-
-    private boolean isStreamNotAvailable(InputStream stream) {
-        try {
-            return stream == null || stream.available() < 1;
-        } catch (IOException e) {
-            return false;
-        }
+    public Stream<T> getParallelStream() {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(this, 0),true);
     }
 
     @Override
@@ -102,10 +61,10 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             return false;
         try {
             JsonToken token = parser.nextToken();
-            if (!isFieldName(token))
+            if (!ParserUtility.isFieldName(token))
                 return false;
             token = parser.nextToken();
-            return isBeginningOfObject(token);
+            return ParserUtility.isBeginningOfObject(token);
         } catch (IOException e) {
             logger.error("Failed to get next token.", e);
             return false;
@@ -123,11 +82,51 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
         return null;
     }
 
-    private boolean isBeginningOfObject(JsonToken token) {
-        return JsonToken.START_OBJECT.equals(token);
+    private boolean searchForParentByName(JsonStrategy strategy) throws IOException {
+        boolean hasNext = false;
+        JsonToken nextToken = parser.nextToken();
+        while (nextToken != JsonToken.END_OBJECT) {
+            if (ParserUtility.isFieldName(nextToken)) {
+                String filedName = parser.getCurrentName();
+                if (StringUtils.equals(filedName, strategy.getRootFieldName())) {
+                    return strategy.navigateToFirstObjectInParent(parser);
+                }else {
+                    nextToken = skipToNextToken();
+                }
+            } else {
+                nextToken = skipToNextToken();
+            }
+        }
+        return hasNext;
     }
 
-    private boolean isFieldName(JsonToken token) {
-        return JsonToken.FIELD_NAME.equals(token);
+    private JsonToken skipToNextToken() throws IOException {
+        parser.skipChildren();
+        return parser.nextToken();
     }
+
+    private void initParser(InputStream stream) throws IOException {
+        parser = jsonFactory.createParser(stream);
+        parser.setCodec(mapper);
+    }
+
+    private boolean validateBeginningOfObject() {
+        boolean validation = false;
+        try {
+            JsonToken token = parser.nextToken();
+            validation = ParserUtility.isBeginningOfObject(token);
+        } catch (IOException e) {
+            logger.error("Failed to parse 1'st token on JSON");
+        }
+        return validation;
+    }
+
+    private boolean isStreamNotAvailable(InputStream stream) {
+        try {
+            return stream == null || stream.available() < 1;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
 }
