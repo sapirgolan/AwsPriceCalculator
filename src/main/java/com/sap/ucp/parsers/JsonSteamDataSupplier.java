@@ -1,12 +1,11 @@
-package com.sap.ucp.service;
+package com.sap.ucp.parsers;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sap.ucp.parsers.JsonStrategy;
-import com.sap.ucp.parsers.ParserUtility;
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     private boolean hasNext = false;
     private final Logger logger = LoggerFactory.getLogger(JsonSteamDataSupplier.class);
     JsonFactory jsonFactory = new JsonFactory();
-    static ObjectMapper mapper = new ObjectMapper();
+    static ObjectMapper mapper = ObjectMapperSingleton.getInstance();
     private JsonParser parser;
 
     public JsonSteamDataSupplier(InputStream stream, JsonStrategy strategy) {
@@ -75,7 +74,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     public T next() {
         try {
             TreeNode treeNode = parser.readValueAsTree();
-            return treeNode == null ? null : mapper.convertValue(treeNode, type);
+            return treeNode == null || treeNode == NullNode.getInstance() ? null : mapper.convertValue(treeNode, type);
         } catch (IOException e) {
             logger.error("Failed ", e);
         }
@@ -83,7 +82,6 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     }
 
     private boolean searchForParentByName(JsonStrategy strategy) throws IOException {
-        boolean hasNext = false;
         JsonToken nextToken = parser.nextToken();
         while (nextToken != JsonToken.END_OBJECT) {
             if (ParserUtility.isFieldName(nextToken)) {
@@ -97,7 +95,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
                 nextToken = skipToNextToken();
             }
         }
-        return hasNext;
+        return false;
     }
 
     private JsonToken skipToNextToken() throws IOException {

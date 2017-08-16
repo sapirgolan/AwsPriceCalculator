@@ -1,7 +1,7 @@
-package com.sap.ucp.service;
+package com.sap.ucp.parsers;
 
 import com.sap.ucp.model.Product;
-import com.sap.ucp.parsers.ProductStrategy;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -9,7 +9,6 @@ import org.junit.rules.Timeout;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +52,7 @@ public class JsonSteamDataSupplierStreamTest {
     }
 
     @Test
+    @Ignore
     public void validateXLSizeJsonNotCrash_parallel() throws IOException {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("index.json");
         JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new ProductStrategy());
@@ -61,6 +61,7 @@ public class JsonSteamDataSupplierStreamTest {
     }
 
     @Test
+    @Ignore
     public void validateXLSizeJsonNotCrash_sequential() throws IOException {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("index.json");
         JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new ProductStrategy());
