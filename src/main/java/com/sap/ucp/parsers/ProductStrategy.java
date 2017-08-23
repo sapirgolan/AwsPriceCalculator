@@ -11,11 +11,11 @@ import java.io.IOException;
 /**
  * Created by i062070 on 16/08/2017.
  */
-public class ProductStrategy implements JsonStrategy{
+public class ProductStrategy implements JsonStrategy<Product> {
     private final Logger logger = LoggerFactory.getLogger(ProductStrategy.class);
 
     @Override
-    public Class getType() {
+    public Class<Product> getType() {
         return Product.class;
     }
 
@@ -30,16 +30,11 @@ public class ProductStrategy implements JsonStrategy{
     }
 
     @Override
-    public boolean hasNext(JsonParser parser) {
-        try {
-            JsonToken token = parser.nextToken();
-            if (!ParserUtility.isFieldName(token))
-                return false;
-            token = parser.nextToken();
-            return ParserUtility.isBeginningOfObject(token);
-        } catch (IOException e) {
-            logger.error("Failed to get next token.", e);
+    public boolean hasNext(JsonParser parser) throws IOException {
+        JsonToken token = parser.nextToken();
+        if (!ParserUtility.isFieldName(token))
             return false;
-        }
+        token = parser.nextToken();
+        return ParserUtility.isBeginningOfObject(token);
     }
 }

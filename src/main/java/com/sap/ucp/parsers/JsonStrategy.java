@@ -8,8 +8,8 @@ import java.io.IOException;
 /**
  * Created by i062070 on 16/08/2017.
  */
-public interface JsonStrategy {
-    <T> Class<T> getType();
+public interface JsonStrategy<T> {
+    Class<T> getType();
 
     String getRootFieldName();
 
@@ -17,5 +17,5 @@ public interface JsonStrategy {
 
     default void performActionAfterReadValue(JsonParser parser) { }
 
-    boolean hasNext(JsonParser parser);
+    boolean hasNext(JsonParser parser) throws IOException;
 }

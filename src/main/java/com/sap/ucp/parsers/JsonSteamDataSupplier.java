@@ -22,17 +22,15 @@ import java.util.stream.StreamSupport;
  */
 public class JsonSteamDataSupplier<T> implements Iterator<T> {
 
-    private final Class<T> type;
-    private final JsonStrategy strategy;
+    private final JsonStrategy<T> strategy;
     private boolean hasNext = false;
     private final Logger logger = LoggerFactory.getLogger(JsonSteamDataSupplier.class);
     JsonFactory jsonFactory = new JsonFactory();
     static ObjectMapper mapper = ObjectMapperSingleton.getInstance();
     private JsonParser parser;
 
-    public JsonSteamDataSupplier(InputStream stream, JsonStrategy strategy) {
+    public JsonSteamDataSupplier(InputStream stream, JsonStrategy<T> strategy) {
         this.strategy = strategy;
-        this.type = strategy.getType();
 
         if (isStreamNotAvailable(stream)) {
             return;
@@ -58,7 +56,12 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        return hasNext && strategy.hasNext(parser);
+        try {
+            return hasNext && strategy.hasNext(parser);
+        } catch (IOException e) {
+            logger.error("Failed to retrieve next token and therefore failed to check if more elements exist.", e);
+        }
+        return false;
     }
 
     @Override
@@ -68,7 +71,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             if (treeNode == null || treeNode == NullNode.getInstance())
                 return null;
             else {
-                T t = mapper.convertValue(treeNode, type);
+                T t = mapper.convertValue(treeNode, strategy.getType());
                 strategy.performActionAfterReadValue(parser);
                 return t;
             }

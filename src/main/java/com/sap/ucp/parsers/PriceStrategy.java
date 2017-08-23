@@ -11,11 +11,11 @@ import java.io.IOException;
 /**
  * Created by i062070 on 16/08/2017.
  */
-public class PriceStrategy implements JsonStrategy {
+public class PriceStrategy implements JsonStrategy<Price> {
     private final Logger logger = LoggerFactory.getLogger(PriceStrategy.class);
 
     @Override
-    public Class getType() {
+    public Class<Price> getType() {
         return Price.class;
     }
 
@@ -28,13 +28,21 @@ public class PriceStrategy implements JsonStrategy {
     public boolean navigateToFirstObjectInParent(JsonParser parser) throws IOException {
         if (!ParserUtility.isBeginningOfObject(parser.nextToken()))
             return false;
+        return managedToStepIntoObject(parser);
+    }
+
+    /**
+     * When one of the values of a JSONObject is a JSONObject itself, you need
+     * to traverse the JSON in order to enter that object
+     * @param parser
+     * @return
+     * @throws IOException
+     */
+    private boolean managedToStepIntoObject(JsonParser parser) throws IOException {
         if (!ParserUtility.isFieldName(parser.nextToken())){
             return false;
         }
-        if (!ParserUtility.isBeginningOfObject(parser.nextToken())) {
-            return false;
-        }
-        return true;
+        return ParserUtility.isBeginningOfObject(parser.nextToken());
     }
 
     @Override
@@ -46,19 +54,25 @@ public class PriceStrategy implements JsonStrategy {
         }
     }
 
-    @Override
-    public boolean hasNext(JsonParser parser) {
-        try {
-            for (int i = 0; i < 2; i++) {
-                if (!ParserUtility.isFieldName(parser.nextToken()))
-                    return false;
-                if (!ParserUtility.isBeginningOfObject(parser.nextToken())){
-                    return false;
+    /**
+     * The Price JSONObject in AWS JSON file contains wrappers that are not relevant for us.
+     * Therefore, we step into this wrappers until we reach the actual Price Object
+     * <p>
+     *      "MMWYT6C5AE7DJWT7": {
+                "MMWYT6C5AE7DJWT7.JRTCKXETXF": {
+                    "sku": "MMWYT6C5AE7DJWT7"...
                 }
             }
-        } catch (IOException e) {
-            logger.error("Failed to get next token.", e);
-            return false;
+     * </p>
+     * @param parser
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public boolean hasNext(JsonParser parser) throws IOException {
+        for (int i = 0; i < 2; i++) {
+            if (!managedToStepIntoObject(parser))
+                return false;
         }
         return true;
     }

@@ -23,7 +23,7 @@ public class JsonSteamDataSupplierPriceTest {
     public void jsonHasNoProducts_noNext() throws Exception {
         String jsonWithNoProducts = "{\"formatVersion\":\"v1.0\",\"disclaimer\":\"This pricing list is for informational purposes only. All prices are subject to the additional terms included in the pricing pages on http://aws.amazon.com. All Free Tier prices are also subject to the terms included at https://aws.amazon.com/free/\",\"offerCode\":\"AmazonEC2\",\"version\":\"20170721022911\",\"publicationDate\":\"2017-07-21T02:29:11Z\"}";
         ByteArrayInputStream stream = new ByteArrayInputStream(jsonWithNoProducts.getBytes());
-        JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new PriceStrategy());
+        JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new ProductStrategy());
         assertThat(steamDataSupplier.hasNext(), is(false));
     }
 
