@@ -7,7 +7,10 @@ import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertThat;
 
@@ -22,19 +25,22 @@ public class PriceServiceTest {
     @Before
     public void setUp() throws Exception {
         priceService = new PriceService();
-        priceService.initProducts();
     }
 
     @Test
     public void computingInstancesAreGroupedByTshirtSize() throws Exception {
+        priceService.initProducts();
         Map<String, Map<String, List<Product>>> products = priceService.getProducts();
+
         assertThat(products, Matchers.hasKey("t2.small"));
         assertThat(products, IsMapWithSize.aMapWithSize(94));
     }
 
     @Test
     public void computingInstancesHaveAllRegionsInLowerCase() throws Exception {
+        priceService.initProducts();
         Map<String, Map<String, List<Product>>> products = priceService.getProducts();
+
         assertThat(products, Matchers.hasKey("t2.medium"));
         Map<String, List<Product>> productsByType = products.get("t2.medium");
         Set<String> allRegionsOfT2Medium = productsByType.keySet();
@@ -44,7 +50,8 @@ public class PriceServiceTest {
 
     @Test
     public void allPricesExist() throws Exception {
-        Map<String, List<Price>> prices = priceService.initPrices();
+        priceService.initPrices();
+        Map<String, List<Price>> prices = priceService.getPrices();
         assertThat(prices, IsMapWithSize.aMapWithSize(19007));
     }
 }

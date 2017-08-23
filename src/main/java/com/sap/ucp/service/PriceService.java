@@ -3,6 +3,7 @@ package com.sap.ucp.service;
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
 import com.sap.ucp.parsers.JsonSteamDataSupplier;
+import com.sap.ucp.parsers.strategy.JsonStrategy;
 import com.sap.ucp.parsers.strategy.PriceStrategy;
 import com.sap.ucp.parsers.strategy.ProductStrategy;
 import org.apache.commons.lang3.StringUtils;
@@ -23,13 +24,23 @@ import static java.util.stream.Collectors.groupingBy;
 public class PriceService {
 
     public static final String NO_INSTALLED_SOFTWARE = "NA";
+    public static final String PRODUCTS_EC2_FILE_NAME = "products_ec2.minify.json";
+    public static final String TERMS_EC2_FILE_NAME = "terms_ec2.minify.json";
     private Map<String, Map<String, List<Product>>> products;
+    private Map<String, List<Price>> prices;
+
+    public Map<String, Map<String, List<Product>>> getProducts() {
+        return products;
+    }
+
+    public Map<String, List<Price>> getPrices() {
+        return prices;
+    }
 
     @PostConstruct
     protected void initProducts() {
-        InputStream productsStream = getClass().getClassLoader().getResourceAsStream("products_ec2.minify.json");
-        JsonSteamDataSupplier<Product> supplier = new JsonSteamDataSupplier<>(productsStream, new ProductStrategy());
-        Stream<Product> stream = supplier.getStream();
+        Stream<Product> stream = getStreamFromFile(new ProductStrategy(), PRODUCTS_EC2_FILE_NAME);
+
         products = stream.filter(p -> StringUtils.equals(NO_INSTALLED_SOFTWARE, p.getPreInstalledSw()))
                 .collect(groupingBy(Product::getInstanceType,
                         groupingBy((Product product) -> {
@@ -38,15 +49,16 @@ public class PriceService {
                         })));
     }
 
-    public Map<String, Map<String, List<Product>>> getProducts() {
-        return products;
+    @PostConstruct
+    protected void initPrices() {
+        Stream<Price> stream = getStreamFromFile(new PriceStrategy(), TERMS_EC2_FILE_NAME);
+
+        prices = stream.collect(groupingBy(Price::getSku));
     }
 
-    public Map<String, List<Price>> initPrices() {
-        InputStream termsStream = getClass().getClassLoader().getResourceAsStream("terms_ec2.minify.json");
-        JsonSteamDataSupplier<Price> supplier = new JsonSteamDataSupplier<>(termsStream, new PriceStrategy());
-        Stream<Price> stream = supplier.getStream();
-
-        return stream.collect(groupingBy(Price::getSku));
+    private <T> Stream<T> getStreamFromFile(JsonStrategy<T> strategy, String jsonFileName) {
+        InputStream productsStream = getClass().getClassLoader().getResourceAsStream(jsonFileName);
+        JsonSteamDataSupplier<T> supplier = new JsonSteamDataSupplier<>(productsStream, strategy);
+        return supplier.getStream();
     }
 }
