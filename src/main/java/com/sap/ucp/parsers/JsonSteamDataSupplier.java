@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 public class JsonSteamDataSupplier<T> implements Iterator<T> {
 
     private final Class<T> type;
+    private final JsonStrategy strategy;
     private boolean hasNext = false;
     private final Logger logger = LoggerFactory.getLogger(JsonSteamDataSupplier.class);
     JsonFactory jsonFactory = new JsonFactory();
@@ -30,6 +31,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     private JsonParser parser;
 
     public JsonSteamDataSupplier(InputStream stream, JsonStrategy strategy) {
+        this.strategy = strategy;
         this.type = strategy.getType();
 
         if (isStreamNotAvailable(stream)) {
@@ -40,7 +42,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
             if (!validateBeginningOfObject())
                 return;
 
-            hasNext = searchForParentByName(strategy);
+            hasNext = searchForParentByName();
         } catch (IOException e) {
             logger.error("Failed to create a parser for inputStream");
         }
@@ -56,32 +58,27 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        if (!hasNext)
-            return false;
-        try {
-            JsonToken token = parser.nextToken();
-            if (!ParserUtility.isFieldName(token))
-                return false;
-            token = parser.nextToken();
-            return ParserUtility.isBeginningOfObject(token);
-        } catch (IOException e) {
-            logger.error("Failed to get next token.", e);
-            return false;
-        }
+        return hasNext && strategy.hasNext(parser);
     }
 
     @Override
     public T next() {
         try {
             TreeNode treeNode = parser.readValueAsTree();
-            return treeNode == null || treeNode == NullNode.getInstance() ? null : mapper.convertValue(treeNode, type);
+            if (treeNode == null || treeNode == NullNode.getInstance())
+                return null;
+            else {
+                T t = mapper.convertValue(treeNode, type);
+                strategy.performActionAfterReadValue(parser);
+                return t;
+            }
         } catch (IOException e) {
             logger.error("Failed ", e);
         }
         return null;
     }
 
-    private boolean searchForParentByName(JsonStrategy strategy) throws IOException {
+    private boolean searchForParentByName() throws IOException {
         JsonToken nextToken = parser.nextToken();
         while (nextToken != JsonToken.END_OBJECT) {
             if (ParserUtility.isFieldName(nextToken)) {

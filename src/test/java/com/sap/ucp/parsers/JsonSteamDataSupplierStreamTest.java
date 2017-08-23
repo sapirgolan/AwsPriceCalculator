@@ -50,22 +50,4 @@ public class JsonSteamDataSupplierStreamTest {
 
         assertThat(steamDataSupplier.getParallelStream().count(), is(1985L));
     }
-
-    @Test
-    @Ignore
-    public void validateXLSizeJsonNotCrash_parallel() throws IOException {
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("index.json");
-        JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new ProductStrategy());
-
-        assertThat(steamDataSupplier.getParallelStream().count(), greaterThan(15000L));
-    }
-
-    @Test
-    @Ignore
-    public void validateXLSizeJsonNotCrash_sequential() throws IOException {
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("index.json");
-        JsonSteamDataSupplier<Product> steamDataSupplier = new JsonSteamDataSupplier<>(stream, new ProductStrategy());
-
-        assertThat(steamDataSupplier.getStream().count(), greaterThan(15000L));
-    }
 }
