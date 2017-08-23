@@ -3,8 +3,8 @@ package com.sap.ucp.service;
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
 import com.sap.ucp.parsers.JsonSteamDataSupplier;
-import com.sap.ucp.parsers.PriceStrategy;
-import com.sap.ucp.parsers.ProductStrategy;
+import com.sap.ucp.parsers.strategy.PriceStrategy;
+import com.sap.ucp.parsers.strategy.ProductStrategy;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

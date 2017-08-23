@@ -1,7 +1,7 @@
 package com.sap.ucp.parsers;
 
 import com.sap.ucp.model.Product;
-import org.junit.Ignore;
+import com.sap.ucp.parsers.strategy.ProductStrategy;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -12,7 +12,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isOneOf;
 import static org.junit.Assert.assertThat;
 
 /**

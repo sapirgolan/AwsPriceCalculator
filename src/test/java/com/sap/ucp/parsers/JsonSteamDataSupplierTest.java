@@ -1,6 +1,7 @@
 package com.sap.ucp.parsers;
 
 import com.sap.ucp.model.Product;
+import com.sap.ucp.parsers.strategy.ProductStrategy;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;

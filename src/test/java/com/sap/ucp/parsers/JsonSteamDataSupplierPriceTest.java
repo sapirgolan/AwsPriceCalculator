@@ -2,8 +2,9 @@ package com.sap.ucp.parsers;
 
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
+import com.sap.ucp.parsers.strategy.PriceStrategy;
+import com.sap.ucp.parsers.strategy.ProductStrategy;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

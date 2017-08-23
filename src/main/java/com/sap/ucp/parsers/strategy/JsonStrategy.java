@@ -1,7 +1,6 @@
-package com.sap.ucp.parsers;
+package com.sap.ucp.parsers.strategy;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 
 import java.io.IOException;
 
