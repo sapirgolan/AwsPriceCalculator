@@ -6,12 +6,13 @@ import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.IntStream;
 
+import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -53,5 +54,28 @@ public class PriceServiceTest {
         priceService.initPrices();
         Map<String, List<Price>> prices = priceService.getPrices();
         assertThat(prices, IsMapWithSize.aMapWithSize(19007));
+    }
+
+    @Test
+    public void calculatePriceForNullValue_returnErrorValue() throws Exception {
+        assertThat(priceService.calculateHourlyPrice(null, "Frankfurt", 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice("t2.meduim", null, 1), Matchers.closeTo(-1.0, 0.00000));
+    }
+
+    @Test
+    public void priceOfPriceObjectWithoutPrice_shouldBeNegative() throws Exception {
+        String fakeSku = UUID.randomUUID().toString();
+        Price mockPrice = Mockito.mock(Price.class);
+        Whitebox.setInternalState(priceService, "prices", new HashMap<String, List<Price>>());
+        priceService.getPrices().put(fakeSku, Arrays.asList(mockPrice));
+
+        assertThat(priceService.getHourlyPrice(fakeSku), closeTo(-1.0, 0.000));
+    }
+
+    @Test
+    public void calculatePriceForInvalidTime_returnErrorValue() throws Exception {
+        IntStream.rangeClosed(-3,0).
+                forEach( hour -> assertThat(priceService.calculateHourlyPrice("someSize", "Frankfurt", hour),
+                                    Matchers.closeTo(-1.0, 0.00000)));
     }
 }
