@@ -15,11 +15,11 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by i062070 on 22/08/2017.
@@ -31,6 +31,7 @@ public class PriceService {
     public static final String PRODUCTS_EC2_FILE_NAME = "products_ec2.minify.json";
     public static final String TERMS_EC2_FILE_NAME = "terms_ec2.minify.json";
     public static final double ERROR_PRICE = -1.0;
+    public static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
     private Map<String, Map<String, List<Product>>> products;
     private Map<String, List<Price>> prices;
     private final Logger logger = LoggerFactory.getLogger(PriceService.class);
@@ -76,30 +77,37 @@ public class PriceService {
     public double calculateHourlyPrice(String tShirtSize, String region, int hours) {
         if (!PriceValidator.isValid(tShirtSize, region, hours)) return ERROR_PRICE;
 
-        String sku = getProductSku(tShirtSize, region);
-        logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, region));
-        if (StringUtils.EMPTY.equals(sku))
+        Collection<String> skus = getProductSkus(tShirtSize, region);
+        if (CollectionUtils.isEmpty(skus))
             return ERROR_PRICE;
-        return hours * getHourlyPrice(sku);
+        return hours * getHourlyPrice(skus);
     }
 
-    protected String getProductSku(String tShirtSize, String region) {
+    protected Collection<String> getProductSkus(String tShirtSize, String region) {
         if (!products.containsKey(tShirtSize)) {
-            return StringUtils.EMPTY;
+            logger.warn(String.format("There is no product with TShirt size '%s'", tShirtSize));
+            return EMPTY_STRING_LIST;
         }
         List<Product> products = this.products.get(tShirtSize).get(region.toLowerCase());
-        if (CollectionUtils.isEmpty(products))
-            return StringUtils.EMPTY;
-        return products.get(0).getSku();
+        if (CollectionUtils.isEmpty(products)) {
+            logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, region));
+            return EMPTY_STRING_LIST;
+        }
+        return products.stream().map(Product::getSku).collect(toList());
     }
 
-    protected double getHourlyPrice(String sku) {
-        if (!prices.containsKey(sku))
+    protected double getHourlyPrice(Collection<String> skus) {
+        List<String> existingSkus = skus.stream().filter(s -> prices.containsKey(s)).collect(toList());
+        if (CollectionUtils.isEmpty(existingSkus))
             return ERROR_PRICE;
-        Price price = prices.get(sku).get(0);
-        double returnedPrice = price.getPrice();
+        OptionalDouble max = existingSkus.stream().map(prices::get)
+                .filter(p -> p != null)
+                .map(l -> l.get(0))
+                .mapToDouble(Price::getPrice)
+                .max();
+        double returnedPrice = max.orElse(ERROR_PRICE);
         if (returnedPrice <= 0) {
-            logger.warn(String.format("Hourly price of product with SKU '%s' is not positive (%s)", sku, returnedPrice));
+            logger.warn(String.format("Hourly price of product with SKU '%s' is not positive (%s)", skus, returnedPrice));
             returnedPrice = ERROR_PRICE;
         }
         return  returnedPrice;

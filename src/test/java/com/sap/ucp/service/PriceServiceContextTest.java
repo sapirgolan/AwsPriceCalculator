@@ -50,7 +50,7 @@ public class PriceServiceContextTest {
 
     @Test
     public void priceOf_F73WDC2MSMN85Z9Z_is_16Dot8060000000() throws Exception {
-        assertThat(priceService.getHourlyPrice("F73WDC2MSMN85Z9Z"), closeTo(16.8060000000, 0.00001));
+        assertThat(priceService.getHourlyPrice(Arrays.asList("F73WDC2MSMN85Z9Z")), closeTo(16.8060000000, 0.00001));
     }
 
     @Test
@@ -61,6 +61,6 @@ public class PriceServiceContextTest {
 
     @Test
     public void priceOfT2LargeInOregonFor24Hours_shouldBe() throws Exception {
-        assertThat(priceService.calculateHourlyPrice("t2.large", "Oregon", 24), Matchers.closeTo(3.696, 0.000001));
+        assertThat(priceService.calculateHourlyPrice("t2.large", "Oregon", 24), Matchers.closeTo(4.656, 0.000001));
     }
 }
