@@ -62,7 +62,7 @@ public class PriceServiceTest {
     @Test
     public void allPricesExist() throws Exception {
         priceService.initPrices();
-        Map<String, List<Price>> prices = priceService.getPrices();
+        Map<String, Price> prices = priceService.getPrices();
         assertThat(prices, IsMapWithSize.aMapWithSize(19007));
     }
 
@@ -77,7 +77,7 @@ public class PriceServiceTest {
         String fakeSku = UUID.randomUUID().toString();
         Price mockPrice = Mockito.mock(Price.class);
         Whitebox.setInternalState(priceService, "prices", new HashMap<String, List<Price>>());
-        priceService.getPrices().put(fakeSku, Arrays.asList(mockPrice));
+        priceService.getPrices().put(fakeSku, mockPrice);
 
         assertThat(priceService.getHourlyPrice(Arrays.asList(fakeSku)), closeTo(-1.0, 0.000));
     }

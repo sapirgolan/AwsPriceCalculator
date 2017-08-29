@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -33,7 +34,7 @@ public class PriceService {
     public static final double ERROR_PRICE = -1.0;
     public static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
     private Map<String, Map<String, List<Product>>> products;
-    private Map<String, List<Price>> prices;
+    private Map<String, Price> prices;
     private final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
 
@@ -41,7 +42,7 @@ public class PriceService {
         return products;
     }
 
-    protected Map<String, List<Price>> getPrices() {
+    protected Map<String, Price> getPrices() {
         return prices;
     }
 
@@ -61,7 +62,7 @@ public class PriceService {
     protected void initPrices() {
         Stream<Price> stream = getStreamFromFile(new PriceStrategy(), TERMS_EC2_FILE_NAME);
 
-        prices = stream.collect(groupingBy(Price::getSku));
+        prices = stream.collect(Collectors.toMap(Price::getSku, (Price p) -> p));
     }
 
     private <T> Stream<T> getStreamFromFile(JsonStrategy<T> strategy, String jsonFileName) {
@@ -100,9 +101,8 @@ public class PriceService {
         List<String> existingSkus = skus.stream().filter(s -> prices.containsKey(s)).collect(toList());
         if (CollectionUtils.isEmpty(existingSkus))
             return ERROR_PRICE;
-        OptionalDouble max = existingSkus.stream().map(prices::get)
-                .filter(p -> p != null)
-                .map(l -> l.get(0))
+        OptionalDouble max = existingSkus.stream()
+                .map(prices::get)
                 .mapToDouble(Price::getPrice)
                 .max();
         double returnedPrice = max.orElse(ERROR_PRICE);
