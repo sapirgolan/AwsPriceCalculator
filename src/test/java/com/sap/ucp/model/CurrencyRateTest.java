@@ -19,7 +19,6 @@ import static org.junit.Assert.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ContextConfiguration(classes = ApplicationTestConfiguration.class)
 @JsonTest
-//@AutoConfigureJson
 public class CurrencyRateTest {
 
     @Autowired

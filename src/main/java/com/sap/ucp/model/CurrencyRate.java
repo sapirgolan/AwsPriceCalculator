@@ -17,6 +17,12 @@ public class CurrencyRate {
     public CurrencyRate() {
     }
 
+    public CurrencyRate(String base, String date, double rate) {
+        this.base = base;
+        this.date = date;
+        this.rate = new Rate(rate);
+    }
+
     public String getBase() {
         return base;
     }
@@ -33,6 +39,13 @@ public class CurrencyRate {
     public class Rate {
         @JsonProperty("EUR")
         private double rate;
+
+        public Rate(double rate) {
+            this.rate = rate;
+        }
+
+        public Rate() {
+        }
 
         public double getExchangeRate() {
             return rate;
