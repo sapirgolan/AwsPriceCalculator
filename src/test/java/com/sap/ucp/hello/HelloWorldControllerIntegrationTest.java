@@ -1,10 +1,10 @@
-package hello;
+package com.sap.ucp.hello;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,19 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Created by i062070 on 27/07/2017.
- * here Spring Boot is only instantiating the web layer, not the whole context.
- * Other beans are not loaded and should be mocked using @MockBean
+ * In this test, the full Spring application context is started, but without the server
  */
-
 @RunWith(SpringRunner.class)
-//@WebMvcTest(HelloWorldController.class)
-@WebMvcTest()
-public class HelloWorldControllerWebLayerTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+public class HelloWorldControllerIntegrationTest {
+
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private GreeterService greeterService;
 
     @Test
     public void shouldReturnDefaultMessage() throws Exception {
@@ -36,5 +32,4 @@ public class HelloWorldControllerWebLayerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Hello, Jhon Doe!")));
     }
-
 }

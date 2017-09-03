@@ -1,4 +1,4 @@
-package hello;
+package com.sap.ucp.hello;
 
 import org.springframework.stereotype.Service;
 
