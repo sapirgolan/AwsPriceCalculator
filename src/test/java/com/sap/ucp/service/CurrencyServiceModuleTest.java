@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = {CurrencyService.class})
 @AutoConfigureJson
 @AutoConfigureMockMvc
-public class CurrencyServiceContextTest {
+public class CurrencyServiceModuleTest {
 
     @MockBean
     RestTemplate restTemplate;

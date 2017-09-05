@@ -1,17 +1,35 @@
 package com.sap.ucp.service;
 
 import com.sap.ucp.model.CurrencyRate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class CurrencyService {
+
+    public static final String QUERY_PARAMS = "?symbols=USD,EUR&base=USD";
+    private final Logger logger = LoggerFactory.getLogger(CurrencyService.class);
+    @Value("${currency.exchange.url}")
+    private String baseUrl;
+
+
     @Autowired
     RestTemplate restTemplate;
 
     public double getEuroCurrencyFromDollar() {
-        CurrencyRate rate = restTemplate.getForObject("http://api.fixer.io/latest?symbols=USD,EUR&base=USD", CurrencyRate.class);
-        return rate.getRate();
+        double rateVal;
+        try {
+            CurrencyRate rate = restTemplate.getForObject(baseUrl + QUERY_PARAMS, CurrencyRate.class);
+            rateVal = rate.getRate();
+        } catch (RestClientException e) {
+            rateVal = -1;
+            logger.error("Failed to obtain currency exchange rate", e);
+        }
+        return rateVal;
     }
 }
