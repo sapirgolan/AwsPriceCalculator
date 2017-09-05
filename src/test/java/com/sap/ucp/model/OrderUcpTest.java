@@ -23,10 +23,11 @@ public class OrderUcpTest {
 
     @Test
     public void testDeserialize() throws Exception {
-        String content = "{\"tShirtSize\":\"x.large\"}";
+        String content = "{\"tShirtSize\":\"x.large\", \"region\":\"Frankfurt\"}";
         ObjectContent<OrderUcp> parse = json.parse(content);
         OrderUcp rate = parse.getObject();
         assertThat(rate.gettShirtSize(), is("x.large"));
+        assertThat(rate.getRegion(), is("Frankfurt"));
     }
 
 }
