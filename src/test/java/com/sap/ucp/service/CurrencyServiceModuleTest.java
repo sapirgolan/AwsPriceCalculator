@@ -1,7 +1,6 @@
 package com.sap.ucp.service;
 
 import com.sap.ucp.model.CurrencyRate;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.CompletableFuture;
+
+import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -26,15 +28,15 @@ public class CurrencyServiceModuleTest {
     @MockBean
     RestTemplate restTemplate;
     @Autowired
-    private CurrencyService currencyService;
+    private ICurrencyService ICurrencyService;
 
     @Test
     public void getEuroCurrencyFromDollar() throws Exception {
         when(restTemplate.getForObject(anyString(), eq(CurrencyRate.class)))
                 .thenReturn(new CurrencyRate("usd", "2017-06-01", 0.764));
 
-        double currency = currencyService.getEuroCurrencyFromDollar();
-        assertThat(currency, Matchers.closeTo(0.764, 0.0001));
+        CompletableFuture<Double> currency = ICurrencyService.getEuroCurrencyFromDollar();
+        assertThat(currency.get(), closeTo(0.764, 0.0001));
     }
 
 }

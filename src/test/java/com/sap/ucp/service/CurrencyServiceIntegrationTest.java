@@ -1,5 +1,6 @@
 package com.sap.ucp.service;
 
+import com.sap.ucp.rules.Retry;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -20,14 +23,17 @@ import static org.junit.Assert.assertThat;
 public class CurrencyServiceIntegrationTest {
 
     @Rule
-    public Timeout globalTimeOut = Timeout.seconds(8);
+    public Timeout globalTimeOut = Timeout.seconds(20);
+
+    @Rule
+    public Retry retry = new Retry(3);
 
     @Autowired
-    private CurrencyService currencyService;
+    private ICurrencyService currencyService;
 
     @Test
     public void getEuroCurrencyFromDollarIntegratedWithInternet() throws Exception {
-        double currency = currencyService.getEuroCurrencyFromDollar();
-        assertThat(currency, Matchers.greaterThan(0.000));
+        CompletableFuture<Double> currency = currencyService.getEuroCurrencyFromDollar();
+        assertThat(currency.get(), Matchers.greaterThan(0.000));
     }
 }

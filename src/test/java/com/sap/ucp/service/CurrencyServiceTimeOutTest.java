@@ -1,7 +1,5 @@
 package com.sap.ucp.service;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
@@ -31,28 +28,25 @@ import static org.junit.Assert.assertThat;
 public class CurrencyServiceTimeOutTest {
 
     @Autowired
-    private CurrencyService currencyService;
+    private ICurrencyService ICurrencyService;
 
     @Test
     public void timeoutWithCatch() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(7070), 0);
 
-        server.createContext("/timeout", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
-                try {
-                    TimeUnit.SECONDS.sleep(3l);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                httpExchange.sendResponseHeaders(200, 0);
+        server.createContext("/timeout", httpExchange -> {
+            try {
+                TimeUnit.SECONDS.sleep(3L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            httpExchange.sendResponseHeaders(200, 0);
         });
         server.start();
 
-        assertThat(currencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar().get(), closeTo(-1.0, 0.0001));
         server.stop(1);
-        assertThat(currencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar().get(), closeTo(-1.0, 0.0001));
     }
 
 }
