@@ -37,13 +37,12 @@ public class PriceController {
     ResponseEntity<PriceEstimation> computePrice(
             @RequestBody OrderUcp order) throws ExecutionException, InterruptedException {
 
-        Double futureEuroRate = ICurrencyService.getEuroCurrencyFromDollar();
-
         double price = priceService.calculateHourlyPrice(order.gettShirtSize(), order.getRegion(), getHoursInMonth());
         if (price < MINIMUM_PRICE)
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
 
-        Double euroRate = futureEuroRate;
+        Double euroRate = ICurrencyService.getEuroCurrencyFromDollar();
+        ;
         if (euroRate <= MINIMUM_PRICE) {
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
         }
