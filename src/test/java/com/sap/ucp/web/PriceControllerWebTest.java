@@ -83,4 +83,22 @@ public class PriceControllerWebTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.price", closeTo(2.4, 0.000001)));
     }
+
+    @Test
+    public void whenCurrncyServiceFail_defaultErrorHandling() throws Exception {
+        OrderUcp orderUcp = new OrderUcp("t2.medium", "Frankfurt");
+
+        when(ICurrencyService.getEuroCurrencyFromDollar())
+                .thenReturn(null);
+        when(priceService.calculateHourlyPrice(eq(orderUcp.gettShirtSize()), eq(orderUcp.getRegion()), anyInt()))
+                .thenReturn(3.0);
+
+        MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(orderUcp));
+        mockMvc.perform(content)
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.price", closeTo(-1.0, 0.000001)));
+    }
 }

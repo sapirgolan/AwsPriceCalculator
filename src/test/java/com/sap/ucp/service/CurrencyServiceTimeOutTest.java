@@ -12,7 +12,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -44,9 +45,9 @@ public class CurrencyServiceTimeOutTest {
         });
         server.start();
 
-        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), is(nullValue()));
         server.stop(1);
-        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), is(nullValue()));
     }
 
 }
