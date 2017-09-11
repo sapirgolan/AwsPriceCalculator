@@ -72,6 +72,12 @@
             <version>${guava.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.5.5</version>
+        </dependency>
+
 
         <!--JSON parsing library-->
         <dependency>

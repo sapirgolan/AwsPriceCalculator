@@ -11,8 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.concurrent.CompletableFuture;
-
 import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -35,8 +33,8 @@ public class CurrencyServiceModuleTest {
         when(restTemplate.getForObject(anyString(), eq(CurrencyRate.class)))
                 .thenReturn(new CurrencyRate("usd", "2017-06-01", 0.764));
 
-        CompletableFuture<Double> currency = ICurrencyService.getEuroCurrencyFromDollar();
-        assertThat(currency.get(), closeTo(0.764, 0.0001));
+        Double currency = ICurrencyService.getEuroCurrencyFromDollar();
+        assertThat(currency, closeTo(0.764, 0.0001));
     }
 
 }

@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.closeTo;
 import static org.mockito.Matchers.*;
@@ -74,7 +73,7 @@ public class PriceControllerWebTest {
         when(priceService.calculateHourlyPrice(eq(orderUcp.gettShirtSize()), eq(orderUcp.getRegion()), anyInt()))
                 .thenReturn(3.0);
         when(ICurrencyService.getEuroCurrencyFromDollar())
-                .thenReturn(CompletableFuture.completedFuture(0.8));
+                .thenReturn(0.8);
 
         MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)
                 .contentType(MediaType.APPLICATION_JSON)

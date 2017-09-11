@@ -5,12 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CurrencyService implements ICurrencyService {
@@ -24,16 +21,15 @@ public class CurrencyService implements ICurrencyService {
     RestTemplate restTemplate;
 
     @Override
-    @Async
-    public CompletableFuture<Double> getEuroCurrencyFromDollar() {
-        double rateVal;
+    public Double getEuroCurrencyFromDollar() {
+        Double rateVal;
         try {
             CurrencyRate rate = restTemplate.getForObject(baseUrl + QUERY_PARAMS, CurrencyRate.class);
             rateVal = rate.getRate();
         } catch (RestClientException e) {
-            rateVal = -1;
+            rateVal = null;
             logger.error("Failed to obtain currency exchange rate", e);
         }
-        return CompletableFuture.completedFuture(rateVal);
+        return rateVal;
     }
 }

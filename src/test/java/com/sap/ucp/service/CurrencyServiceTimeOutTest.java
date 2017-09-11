@@ -44,9 +44,9 @@ public class CurrencyServiceTimeOutTest {
         });
         server.start();
 
-        assertThat(ICurrencyService.getEuroCurrencyFromDollar().get(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
         server.stop(1);
-        assertThat(ICurrencyService.getEuroCurrencyFromDollar().get(), closeTo(-1.0, 0.0001));
+        assertThat(ICurrencyService.getEuroCurrencyFromDollar(), closeTo(-1.0, 0.0001));
     }
 
 }

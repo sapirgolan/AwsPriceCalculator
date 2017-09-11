@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -38,13 +37,13 @@ public class PriceController {
     ResponseEntity<PriceEstimation> computePrice(
             @RequestBody OrderUcp order) throws ExecutionException, InterruptedException {
 
-        CompletableFuture<Double> futureEuroRate = ICurrencyService.getEuroCurrencyFromDollar();
+        Double futureEuroRate = ICurrencyService.getEuroCurrencyFromDollar();
 
         double price = priceService.calculateHourlyPrice(order.gettShirtSize(), order.getRegion(), getHoursInMonth());
         if (price < MINIMUM_PRICE)
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
 
-        Double euroRate = futureEuroRate.get();
+        Double euroRate = futureEuroRate;
         if (euroRate <= MINIMUM_PRICE) {
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
         }

@@ -12,8 +12,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.concurrent.CompletableFuture;
-
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -33,7 +31,7 @@ public class CurrencyServiceIntegrationTest {
 
     @Test
     public void getEuroCurrencyFromDollarIntegratedWithInternet() throws Exception {
-        CompletableFuture<Double> currency = currencyService.getEuroCurrencyFromDollar();
-        assertThat(currency.get(), Matchers.greaterThan(0.000));
+        Double currency = currencyService.getEuroCurrencyFromDollar();
+        assertThat(currency, Matchers.greaterThan(0.000));
     }
 }
