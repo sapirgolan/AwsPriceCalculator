@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PriceControllerRestTest {
 
     public static final String HTTP_LOCALHOST = "http://localhost:";
-    public static final String CONTROLLER_NAME = "/v1.0/aws";
+    private static final String CONTROLLER_NAME = PriceController.REST_NAME;
 
     @Autowired
     PriceController priceController;

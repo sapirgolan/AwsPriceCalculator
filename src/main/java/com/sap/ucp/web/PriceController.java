@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(PriceController.REST_NAME)
 public class PriceController {
 
-    public static final String REST_NAME = "/v1.0/aws";
+    public static final String REST_NAME = "/v1.0/calculate";
     public static final double ERROR_PRICE = -1.0;
     public static final int MINIMUM_PRICE = 0;
     private static Logger logger = LoggerFactory.getLogger(PriceController.class);
