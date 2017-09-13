@@ -42,6 +42,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
                 return;
 
             hasNext = searchForParentByName();
+            logger.debug("After searching for 1'st element using " + strategy.getClass().getSimpleName() + " hasNext==" + hasNext);
         } catch (IOException e) {
             logger.error("Failed to create a parser for inputStream");
         }
@@ -83,6 +84,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     }
 
     private boolean searchForParentByName() throws IOException {
+        logger.debug("Starting to search for 1'st parent in JSON");
         JsonToken nextToken = parser.nextToken();
         while (nextToken != JsonToken.END_OBJECT) {
             if (ParserUtility.isFieldName(nextToken)) {
@@ -105,6 +107,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
     }
 
     private void initParser(InputStream stream) throws IOException {
+        logger.debug("init parser");
         parser = jsonFactory.createParser(stream);
         parser.setCodec(mapper);
     }
@@ -122,6 +125,7 @@ public class JsonSteamDataSupplier<T> implements Iterator<T> {
 
     private boolean isStreamNotAvailable(InputStream stream) {
         try {
+            logger.debug("Stream is empty or null");
             return stream == null || stream.available() < 1;
         } catch (IOException e) {
             return false;

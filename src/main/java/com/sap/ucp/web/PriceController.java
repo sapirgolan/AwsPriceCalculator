@@ -38,12 +38,14 @@ public class PriceController {
             @RequestBody OrderUcp order) throws ExecutionException, InterruptedException {
 
         double price = priceService.calculateHourlyPrice(order.gettShirtSize(), order.getRegion(), getHoursInMonth());
-        if (price < MINIMUM_PRICE)
+        if (price < MINIMUM_PRICE) {
+            logger.warn("calculated price was below " + MINIMUM_PRICE);
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
+        }
 
         Double euroRate = ICurrencyService.getEuroCurrencyFromDollar();
-        ;
         if (euroRate <= MINIMUM_PRICE) {
+            logger.error("Failed to convert USD to other currency");
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(new PriceEstimation(price * euroRate), HttpStatus.OK);

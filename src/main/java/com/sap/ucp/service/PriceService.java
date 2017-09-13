@@ -37,37 +37,46 @@ public class PriceService {
     private Map<String, Price> prices;
     private final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
-
     protected Map<String, Map<String, List<Product>>> getProducts() {
         return products;
     }
-
     protected Map<String, Price> getPrices() {
         return prices;
     }
 
     @PostConstruct
     protected void initProducts() {
+        logger.debug("Starting retrieving products from DISK");
         Stream<Product> stream = getStreamFromFile(new ProductStrategy(), PRODUCTS_EC2_FILE_NAME);
 
-        products = stream.filter(p -> StringUtils.equals(NO_INSTALLED_SOFTWARE, p.getPreInstalledSw()))
-                .collect(groupingBy(Product::getInstanceType,
-                        groupingBy((Product product) -> {
-                            String region = StringUtils.substringBetween(product.getLocation(), "(", ")");
-                            return region != null ? region.toLowerCase() : region;
-                        })));
+        try {
+            products = stream.filter(p -> StringUtils.equals(NO_INSTALLED_SOFTWARE, p.getPreInstalledSw()))
+                    .collect(groupingBy(Product::getInstanceType,
+                            groupingBy((Product product) -> {
+                                String region = StringUtils.substringBetween(product.getLocation(), "(", ")");
+                                return region != null ? region.toLowerCase() : region;
+                            })));
+        } catch (Throwable e) {
+            logger.error("Failed to process products", e);
+        }
+        logger.debug("Finished retrieving products from DISK");
     }
 
     @PostConstruct
     protected void initPrices() {
+        logger.debug("Starting retrieving prices from DISK");
         Stream<Price> stream = getStreamFromFile(new PriceStrategy(), TERMS_EC2_FILE_NAME);
 
         prices = stream.collect(Collectors.toMap(Price::getSku, (Price p) -> p));
+        logger.debug("Finished retrieving prices from DISK");
     }
 
     private <T> Stream<T> getStreamFromFile(JsonStrategy<T> strategy, String jsonFileName) {
+        logger.debug("Starting to access resource from disk " + jsonFileName);
         InputStream productsStream = getClass().getClassLoader().getResourceAsStream(jsonFileName);
+        logger.debug("got stream to " + jsonFileName + " isNull? " + (null == productsStream));
         JsonSteamDataSupplier<T> supplier = new JsonSteamDataSupplier<>(productsStream, strategy);
+        logger.debug("Finished accessing resource from disk " + jsonFileName);
         return supplier.getStream();
     }
 
