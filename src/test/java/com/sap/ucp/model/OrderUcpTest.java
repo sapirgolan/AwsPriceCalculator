@@ -30,4 +30,13 @@ public class OrderUcpTest {
         assertThat(rate.getRegion(), is("Frankfurt"));
     }
 
+    @Test
+    public void os_tshirt_region() throws Exception {
+        String content = "{\"region\":\"Frankfurt\",\"tShirtSize\":\"t2.micro\",\"os\":\"Red Hat Enterprise Linux 7.3 (HVM), SSD Volume Type\"}";
+        ObjectContent<OrderUcp> parsed = json.parse(content);
+        OrderUcp orderUcp = parsed.getObject();
+        assertThat(orderUcp.gettShirtSize(), is("t2.micro"));
+        assertThat(orderUcp.getRegion(), is("Frankfurt"));
+        assertThat(orderUcp.getOs(), is("Red Hat Enterprise Linux 7.3 (HVM), SSD Volume Type"));
+    }
 }

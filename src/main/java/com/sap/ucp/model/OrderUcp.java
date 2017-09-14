@@ -9,6 +9,7 @@ public class OrderUcp {
     private int quntity;
     private String tShirtSize;
     private String region;
+    private String os;
 
     public OrderUcp(String tShirtSize, String region) {
         this.quntity = 1;
@@ -25,5 +26,9 @@ public class OrderUcp {
 
     public String getRegion() {
         return StringUtils.stripAccents(region);
+    }
+
+    public String getOs() {
+        return os;
     }
 }
