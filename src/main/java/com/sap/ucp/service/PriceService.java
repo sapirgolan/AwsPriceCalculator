@@ -34,15 +34,16 @@ public class PriceService {
     public static final String TERMS_EC2_FILE_NAME = "terms_ec2.minify.json";
     public static final double ERROR_PRICE = -1.0;
     public static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
-    private Map<String, Map<String, List<Product>>> products;
-    private Map<String, Price> prices;
+    private Map<String, Map<String, List<Product>>> productsMap;
+    private Map<String, Price> pricesMap;
     private final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
-    protected Map<String, Map<String, List<Product>>> getProducts() {
-        return products;
+    protected Map<String, Map<String, List<Product>>> getProductsMap() {
+        return productsMap;
     }
-    protected Map<String, Price> getPrices() {
-        return prices;
+
+    protected Map<String, Price> getPricesMap() {
+        return pricesMap;
     }
 
     @PostConstruct
@@ -51,7 +52,7 @@ public class PriceService {
         Stream<Product> stream = getStreamFromFile(new ProductStrategy(), PRODUCTS_EC2_FILE_NAME);
 
         try {
-            products = stream.filter(p -> StringUtils.equals(NO_INSTALLED_SOFTWARE, p.getPreInstalledSw()))
+            productsMap = stream.filter(p -> StringUtils.equals(NO_INSTALLED_SOFTWARE, p.getPreInstalledSw()))
                     .collect(groupingBy(Product::getInstanceType,
                             groupingBy((Product product) -> {
                                 String region = StringUtils.substringBetween(product.getLocation(), "(", ")");
@@ -68,7 +69,7 @@ public class PriceService {
         logger.debug("Starting retrieving prices from DISK");
         Stream<Price> stream = getStreamFromFile(new PriceStrategy(), TERMS_EC2_FILE_NAME);
 
-        prices = stream.collect(Collectors.toMap(Price::getSku, (Price p) -> p));
+        pricesMap = stream.collect(Collectors.toMap(Price::getSku, (Price p) -> p));
         logger.debug("Finished retrieving prices from DISK");
     }
 
@@ -96,11 +97,11 @@ public class PriceService {
 
     protected Collection<String> getProductSkus(OrderUcp order) {
         String tShirtSize = order.gettShirtSize();
-        if (!products.containsKey(tShirtSize)) {
+        if (!productsMap.containsKey(tShirtSize)) {
             logger.warn(String.format("There is no product with TShirt size '%s'", tShirtSize));
             return EMPTY_STRING_LIST;
         }
-        List<Product> products = this.products.get(tShirtSize).get(order.getRegion().toLowerCase());
+        List<Product> products = this.productsMap.get(tShirtSize).get(order.getRegion().toLowerCase());
         if (CollectionUtils.isEmpty(products)) {
             logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, order.getRegion()));
             return EMPTY_STRING_LIST;
@@ -109,11 +110,11 @@ public class PriceService {
     }
 
     protected double getHourlyPrice(Collection<String> skus) {
-        List<String> existingSkus = skus.stream().filter(s -> prices.containsKey(s)).collect(toList());
+        List<String> existingSkus = skus.stream().filter(s -> pricesMap.containsKey(s)).collect(toList());
         if (CollectionUtils.isEmpty(existingSkus))
             return ERROR_PRICE;
         OptionalDouble max = existingSkus.stream()
-                .map(prices::get)
+                .map(pricesMap::get)
                 .mapToDouble(Price::getPrice)
                 .max();
         double returnedPrice = max.orElse(ERROR_PRICE);

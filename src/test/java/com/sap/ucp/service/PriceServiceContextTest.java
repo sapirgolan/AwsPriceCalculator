@@ -28,12 +28,12 @@ public class PriceServiceContextTest {
 
     @Test
     public void initProductsStartsAfterSpringContextIsLoaded() throws Exception {
-        assertThat(priceService.getProducts(), IsMapWithSize.aMapWithSize(94));
+        assertThat(priceService.getProductsMap(), IsMapWithSize.aMapWithSize(94));
     }
 
     @Test
     public void initPricesStartAfterSpringContextIsLoaded() throws Exception {
-        assertThat(priceService.getPrices(), IsMapWithSize.aMapWithSize(19007));
+        assertThat(priceService.getPricesMap(), IsMapWithSize.aMapWithSize(19007));
     }
 
     @Test
@@ -42,7 +42,7 @@ public class PriceServiceContextTest {
         String fakeSku = UUID.randomUUID().toString();
         Product mockProduct = Mockito.mock(Product.class);
 
-        priceService.getProducts().put(fakeSku, ImmutableMap.of("Frankfurt", Arrays.asList(mockProduct)));
+        priceService.getProductsMap().put(fakeSku, ImmutableMap.of("Frankfurt", Arrays.asList(mockProduct)));
         OrderUcp order = new OrderUcp(fakeSku, "Frankfurt");
         assertThat(priceService.calculateHourlyPrice(order, 1), Matchers.closeTo(-1.0, 0.00000));
 
