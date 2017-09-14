@@ -37,7 +37,7 @@ public class PriceController {
     ResponseEntity<PriceEstimation> computePrice(
             @RequestBody OrderUcp order) throws ExecutionException, InterruptedException {
 
-        double price = priceService.calculateHourlyPrice(order.gettShirtSize(), order.getRegion(), getHoursInMonth());
+        double price = priceService.calculateHourlyPrice(order, getHoursInMonth());
         if (price < MINIMUM_PRICE) {
             logger.warn("calculated price was below " + MINIMUM_PRICE);
             return new ResponseEntity<>(new PriceEstimation(ERROR_PRICE), HttpStatus.NOT_FOUND);

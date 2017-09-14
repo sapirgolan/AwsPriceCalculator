@@ -1,6 +1,7 @@
 package com.sap.ucp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.sap.ucp.types.OSType;
 import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,6 +21,11 @@ public class OrderUcp {
     public OrderUcp() {
     }
 
+    public OrderUcp(String tShirt, String region, OSType os) {
+        this(tShirt, region);
+        this.os = os.toString();
+    }
+
     public String gettShirtSize() {
         return tShirtSize;
     }
@@ -29,6 +35,9 @@ public class OrderUcp {
     }
 
     public String getOs() {
+        if (os == null) {
+            return OSType.SUSE.toString();
+        }
         return os;
     }
 }

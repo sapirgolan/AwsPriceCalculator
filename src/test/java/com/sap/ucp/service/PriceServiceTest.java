@@ -1,5 +1,6 @@
 package com.sap.ucp.service;
 
+import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
 import org.hamcrest.Matchers;
@@ -68,8 +69,10 @@ public class PriceServiceTest {
 
     @Test
     public void calculatePriceForNullValue_returnErrorValue() throws Exception {
-        assertThat(priceService.calculateHourlyPrice(null, "Frankfurt", 1), Matchers.closeTo(-1.0, 0.00000));
-        assertThat(priceService.calculateHourlyPrice("t2.meduim", null, 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp(null, "London"), 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.small", null), 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.small", null), 1), Matchers.closeTo(-1.0, 0.00000));
+
     }
 
     @Test
@@ -85,13 +88,13 @@ public class PriceServiceTest {
     @Test
     public void calculatePriceForInvalidTime_returnErrorValue() throws Exception {
         IntStream.rangeClosed(-3,0).
-                forEach( hour -> assertThat(priceService.calculateHourlyPrice("someSize", "Frankfurt", hour),
+                forEach(hour -> assertThat(priceService.calculateHourlyPrice(new OrderUcp("someSize", "london"), hour),
                                     Matchers.closeTo(-1.0, 0.00000)));
     }
 
     @Test
     public void whenTShirtNotExists_returnEmptyCollection() throws Exception {
-        Collection<String> skus = priceService.getProductSkus("fakeTShirstSize", null);
+        Collection<String> skus = priceService.getProductSkus(new OrderUcp("FakeSize", null));
         assertThat(skus, emptyCollectionOf(String.class));
     }
 
@@ -101,7 +104,7 @@ public class PriceServiceTest {
         when(products.containsKey(tShirtSize)).thenReturn(true);
         when(products.get(tShirtSize)).thenReturn(mock(Map.class));
 
-        Collection<String> skus = priceService.getProductSkus(tShirtSize, "fakeRegion");
+        Collection<String> skus = priceService.getProductSkus(new OrderUcp(tShirtSize, "fakeRegion"));
         assertThat(skus, emptyCollectionOf(String.class));
     }
 }

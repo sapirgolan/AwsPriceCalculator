@@ -1,12 +1,13 @@
 package com.sap.ucp.service;
 
+import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
 import com.sap.ucp.parsers.JsonSteamDataSupplier;
 import com.sap.ucp.parsers.strategy.JsonStrategy;
 import com.sap.ucp.parsers.strategy.PriceStrategy;
 import com.sap.ucp.parsers.strategy.ProductStrategy;
-import com.sap.ucp.validator.PriceValidator;
+import com.sap.ucp.validator.OrderValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,27 +81,28 @@ public class PriceService {
         return supplier.getStream();
     }
 
-    public double calculateHourlyPrice(String tShirtSize, String region) {
-        return calculateHourlyPrice(tShirtSize, region, 1);
+    public double calculateHourlyPrice(OrderUcp order) {
+        return calculateHourlyPrice(order, 1);
     }
 
-    public double calculateHourlyPrice(String tShirtSize, String region, int hours) {
-        if (!PriceValidator.isValid(tShirtSize, region, hours)) return ERROR_PRICE;
+    public double calculateHourlyPrice(OrderUcp order, int hours) {
+        if (!OrderValidator.isValid(order, hours)) return ERROR_PRICE;
 
-        Collection<String> skus = getProductSkus(tShirtSize, region);
+        Collection<String> skus = getProductSkus(order);
         if (CollectionUtils.isEmpty(skus))
             return ERROR_PRICE;
         return hours * getHourlyPrice(skus);
     }
 
-    protected Collection<String> getProductSkus(String tShirtSize, String region) {
+    protected Collection<String> getProductSkus(OrderUcp order) {
+        String tShirtSize = order.gettShirtSize();
         if (!products.containsKey(tShirtSize)) {
             logger.warn(String.format("There is no product with TShirt size '%s'", tShirtSize));
             return EMPTY_STRING_LIST;
         }
-        List<Product> products = this.products.get(tShirtSize).get(region.toLowerCase());
+        List<Product> products = this.products.get(tShirtSize).get(order.getRegion().toLowerCase());
         if (CollectionUtils.isEmpty(products)) {
-            logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, region));
+            logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, order.getRegion()));
             return EMPTY_STRING_LIST;
         }
         return products.stream().map(Product::getSku).collect(toList());
