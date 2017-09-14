@@ -1,6 +1,7 @@
 package com.sap.ucp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderUcp {
@@ -23,6 +24,6 @@ public class OrderUcp {
     }
 
     public String getRegion() {
-        return region;
+        return StringUtils.stripAccents(region);
     }
 }
