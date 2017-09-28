@@ -13,6 +13,7 @@ public class ProductAttributes {
     private String instanceType;
     private String preInstalledSw;
     private String location;
+    private String operatingSystem;
 
     public String getInstanceType() {
         return instanceType;
@@ -36,5 +37,9 @@ public class ProductAttributes {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getOperatingSystem() {
+        return operatingSystem;
     }
 }

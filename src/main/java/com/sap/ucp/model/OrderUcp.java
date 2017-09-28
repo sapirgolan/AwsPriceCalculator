@@ -22,8 +22,12 @@ public class OrderUcp {
     }
 
     public OrderUcp(String tShirt, String region, OSType os) {
-        this(tShirt, region);
-        this.os = os.toString();
+        this(tShirt, region, os.toString());
+    }
+
+    public OrderUcp(String tShirtSize, String region, String os) {
+        this(tShirtSize, region);
+        this.os = os;
     }
 
     public String gettShirtSize() {

@@ -2,6 +2,7 @@ package com.sap.ucp.web;
 
 import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.PriceEstimation;
+import com.sap.ucp.types.OSType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,5 +42,16 @@ public class PriceControllerRestTest {
         assertThat(priceEstimation).hasNoNullFieldsOrPropertiesExcept("price", "currency");
         assertThat(priceEstimation.getCurrency()).matches("EUR");
         assertThat(priceEstimation.getPrice()).isBetween(2.325 * 30, 6.975 * 30);
+    }
+
+    @Test
+    public void eachOsHasDifferentPrice() throws Exception {
+        Collection<Double> prices = Arrays.stream(OSType.values())
+                .map(os -> new OrderUcp("t2.large", "Oregon", os))
+                .map(HttpEntity::new)
+                .map(order -> restTemplate.postForObject(HTTP_LOCALHOST + port + CONTROLLER_NAME, order, PriceEstimation.class))
+                .map(PriceEstimation::getPrice)
+                .collect(Collectors.toSet());
+        assertThat(prices).hasSize(4);
     }
 }

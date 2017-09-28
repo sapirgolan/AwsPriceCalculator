@@ -3,6 +3,7 @@ package com.sap.ucp.service;
 import com.google.common.collect.ImmutableMap;
 import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.Product;
+import com.sap.ucp.types.OSType;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Test;
@@ -14,9 +15,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -64,7 +68,16 @@ public class PriceServiceContextTest {
     }
 
     @Test
-    public void priceOfT2LargeInOregonFor24Hours_shouldBe() throws Exception {
+    public void priceOf_T2Large_Oregon_DefaultOS_For24Hours_shouldBe() throws Exception {
         assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.large", "Oregon"), 24), Matchers.closeTo(4.656, 0.000001));
+    }
+
+    @Test
+    public void eachOsHasDifferentPrice() throws Exception {
+        Collection<Double> prices = Arrays.stream(OSType.values())
+                .map(os -> new OrderUcp("t2.large", "Oregon", os))
+                .map(priceService::calculateHourlyPrice)
+                .collect(Collectors.toSet());
+        assertThat(prices, hasSize(4));
     }
 }

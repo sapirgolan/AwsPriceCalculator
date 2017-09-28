@@ -7,6 +7,7 @@ import com.sap.ucp.parsers.JsonSteamDataSupplier;
 import com.sap.ucp.parsers.strategy.JsonStrategy;
 import com.sap.ucp.parsers.strategy.PriceStrategy;
 import com.sap.ucp.parsers.strategy.ProductStrategy;
+import com.sap.ucp.utils.OSUtil;
 import com.sap.ucp.validator.OrderValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -101,12 +102,20 @@ public class PriceService {
             logger.warn(String.format("There is no product with TShirt size '%s'", tShirtSize));
             return EMPTY_STRING_LIST;
         }
-        List<Product> products = this.productsMap.get(tShirtSize).get(order.getRegion().toLowerCase());
-        if (CollectionUtils.isEmpty(products)) {
+        List<String> skus = productsMap.entrySet().stream()
+                .filter(entry -> entry.getKey().equals(tShirtSize))
+                .map(entry -> entry.getValue())
+                .map(map -> map.get(order.getRegion().toLowerCase()))
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(product -> OSUtil.equal(product, order))
+                .map(Product::getSku)
+                .collect(toList());
+        if (CollectionUtils.isEmpty(skus)) {
             logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, order.getRegion()));
             return EMPTY_STRING_LIST;
         }
-        return products.stream().map(Product::getSku).collect(toList());
+        return skus;
     }
 
     protected double getHourlyPrice(Collection<String> skus) {

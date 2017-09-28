@@ -40,4 +40,10 @@ public class Product {
             return StringUtils.EMPTY;
         return attributes.getLocation();
     }
+
+    public String getOS() {
+        if (attributes == null)
+            return StringUtils.EMPTY;
+        return attributes.getOperatingSystem();
+    }
 }
