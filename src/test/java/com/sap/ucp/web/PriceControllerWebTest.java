@@ -39,7 +39,7 @@ public class PriceControllerWebTest {
     @Test
     public void whenRequestContainsInvalidData_404IsReturned() throws Exception {
         OrderUcp orderUcp = new OrderUcp("t2.medium", "roosevelt");
-        when(priceService.calculateHourlyPrice(orderUcp.gettShirtSize(), orderUcp.getRegion(), 24))
+        when(priceService.calculateHourlyPrice(orderUcp, 24))
                 .thenReturn(PriceService.ERROR_PRICE);
 
         MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)
@@ -53,9 +53,9 @@ public class PriceControllerWebTest {
 
     @Test
     public void whenExceptionThrown_defaultErrorHandling() throws Exception {
-        when(priceService.calculateHourlyPrice(anyString(), anyString(), anyInt()))
-                .thenThrow(IOException.class);
         OrderUcp orderUcp = new OrderUcp("t2.medium", "roosevelt");
+        when(priceService.calculateHourlyPrice(eq(orderUcp), anyInt()))
+                .thenThrow(IOException.class);
 
         MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +70,7 @@ public class PriceControllerWebTest {
     @Test
     public void whenConvectionRateIsX_priceIsMultipliedByX() throws Exception {
         OrderUcp orderUcp = new OrderUcp("t2.medium", "Frankfurt");
-        when(priceService.calculateHourlyPrice(eq(orderUcp.gettShirtSize()), eq(orderUcp.getRegion()), anyInt()))
+        when(priceService.calculateHourlyPrice(any(OrderUcp.class), anyInt()))
                 .thenReturn(3.0);
         when(ICurrencyService.getEuroCurrencyFromDollar())
                 .thenReturn(0.8);
@@ -90,7 +90,7 @@ public class PriceControllerWebTest {
 
         when(ICurrencyService.getEuroCurrencyFromDollar())
                 .thenReturn(null);
-        when(priceService.calculateHourlyPrice(eq(orderUcp.gettShirtSize()), eq(orderUcp.getRegion()), anyInt()))
+        when(priceService.calculateHourlyPrice(eq(orderUcp), anyInt()))
                 .thenReturn(3.0);
 
         MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)

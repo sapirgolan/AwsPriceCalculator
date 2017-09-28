@@ -1,5 +1,6 @@
 package com.sap.ucp.service;
 
+import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.Price;
 import com.sap.ucp.model.Product;
 import org.hamcrest.Matchers;
@@ -32,16 +33,16 @@ public class PriceServiceTest {
     @InjectMocks
     private PriceService priceService;
 
-    @Mock /* in version 1.10.19 of mockito, it fails to inject 'products' to PriceService unless both members exists */
-    private Map<String, Map<String, List<Product>>> products;
+    @Mock /* in version 1.10.19 of mockito, it fails to inject 'productsMap' to PriceService unless both members exists */
+    private Map<String, Map<String, List<Product>>> productsMap;
 
-    @Mock /* in version 1.10.19 of mockito, it fails to inject 'products' to PriceService unless both members exists */
-    private Map<String, List<Price>> prices;
+    @Mock /* in version 1.10.19 of mockito, it fails to inject 'productsMap' to PriceService unless both members exists */
+    private Map<String, List<Price>> pricesMap;
 
     @Test
     public void computingInstancesAreGroupedByTshirtSize() throws Exception {
         priceService.initProducts();
-        Map<String, Map<String, List<Product>>> products = priceService.getProducts();
+        Map<String, Map<String, List<Product>>> products = priceService.getProductsMap();
 
         assertThat(products, Matchers.hasKey("t2.small"));
         assertThat(products, IsMapWithSize.aMapWithSize(94));
@@ -50,7 +51,7 @@ public class PriceServiceTest {
     @Test
     public void computingInstancesHaveAllRegionsInLowerCase() throws Exception {
         priceService.initProducts();
-        Map<String, Map<String, List<Product>>> products = priceService.getProducts();
+        Map<String, Map<String, List<Product>>> products = priceService.getProductsMap();
 
         assertThat(products, Matchers.hasKey("t2.medium"));
         Map<String, List<Product>> productsByType = products.get("t2.medium");
@@ -62,22 +63,24 @@ public class PriceServiceTest {
     @Test
     public void allPricesExist() throws Exception {
         priceService.initPrices();
-        Map<String, Price> prices = priceService.getPrices();
+        Map<String, Price> prices = priceService.getPricesMap();
         assertThat(prices, IsMapWithSize.aMapWithSize(19007));
     }
 
     @Test
     public void calculatePriceForNullValue_returnErrorValue() throws Exception {
-        assertThat(priceService.calculateHourlyPrice(null, "Frankfurt", 1), Matchers.closeTo(-1.0, 0.00000));
-        assertThat(priceService.calculateHourlyPrice("t2.meduim", null, 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp(null, "London"), 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.small", null), 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.small", null), 1), Matchers.closeTo(-1.0, 0.00000));
+
     }
 
     @Test
     public void priceOfPriceObjectWithoutPrice_shouldBeNegative() throws Exception {
         String fakeSku = UUID.randomUUID().toString();
         Price mockPrice = Mockito.mock(Price.class);
-        Whitebox.setInternalState(priceService, "prices", new HashMap<String, List<Price>>());
-        priceService.getPrices().put(fakeSku, mockPrice);
+        Whitebox.setInternalState(priceService, "pricesMap", new HashMap<String, List<Price>>());
+        priceService.getPricesMap().put(fakeSku, mockPrice);
 
         assertThat(priceService.getHourlyPrice(Arrays.asList(fakeSku)), closeTo(-1.0, 0.000));
     }
@@ -85,23 +88,23 @@ public class PriceServiceTest {
     @Test
     public void calculatePriceForInvalidTime_returnErrorValue() throws Exception {
         IntStream.rangeClosed(-3,0).
-                forEach( hour -> assertThat(priceService.calculateHourlyPrice("someSize", "Frankfurt", hour),
+                forEach(hour -> assertThat(priceService.calculateHourlyPrice(new OrderUcp("someSize", "london"), hour),
                                     Matchers.closeTo(-1.0, 0.00000)));
     }
 
     @Test
     public void whenTShirtNotExists_returnEmptyCollection() throws Exception {
-        Collection<String> skus = priceService.getProductSkus("fakeTShirstSize", null);
+        Collection<String> skus = priceService.getProductSkus(new OrderUcp("FakeSize", null));
         assertThat(skus, emptyCollectionOf(String.class));
     }
 
     @Test
     public void whenTShirtNotExistsAtRegion_returnEmptyCollection() throws Exception {
         String tShirtSize = "fakeTShirstSize";
-        when(products.containsKey(tShirtSize)).thenReturn(true);
-        when(products.get(tShirtSize)).thenReturn(mock(Map.class));
+        when(productsMap.containsKey(tShirtSize)).thenReturn(true);
+        when(productsMap.get(tShirtSize)).thenReturn(mock(Map.class));
 
-        Collection<String> skus = priceService.getProductSkus(tShirtSize, "fakeRegion");
+        Collection<String> skus = priceService.getProductSkus(new OrderUcp(tShirtSize, "fakeRegion"));
         assertThat(skus, emptyCollectionOf(String.class));
     }
 }

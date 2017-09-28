@@ -1,7 +1,9 @@
 package com.sap.ucp.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.Product;
+import com.sap.ucp.types.OSType;
 import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Test;
@@ -13,9 +15,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -27,12 +32,12 @@ public class PriceServiceContextTest {
 
     @Test
     public void initProductsStartsAfterSpringContextIsLoaded() throws Exception {
-        assertThat(priceService.getProducts(), IsMapWithSize.aMapWithSize(94));
+        assertThat(priceService.getProductsMap(), IsMapWithSize.aMapWithSize(94));
     }
 
     @Test
     public void initPricesStartAfterSpringContextIsLoaded() throws Exception {
-        assertThat(priceService.getPrices(), IsMapWithSize.aMapWithSize(19007));
+        assertThat(priceService.getPricesMap(), IsMapWithSize.aMapWithSize(19007));
     }
 
     @Test
@@ -41,11 +46,12 @@ public class PriceServiceContextTest {
         String fakeSku = UUID.randomUUID().toString();
         Product mockProduct = Mockito.mock(Product.class);
 
-        priceService.getProducts().put(fakeSku, ImmutableMap.of("Frankfurt", Arrays.asList(mockProduct)));
-        assertThat(priceService.calculateHourlyPrice(fakeSku, "Frankfurt", 1), Matchers.closeTo(-1.0, 0.00000));
+        priceService.getProductsMap().put(fakeSku, ImmutableMap.of("Frankfurt", Arrays.asList(mockProduct)));
+        OrderUcp order = new OrderUcp(fakeSku, "Frankfurt");
+        assertThat(priceService.calculateHourlyPrice(order, 1), Matchers.closeTo(-1.0, 0.00000));
 
         Mockito.when(mockProduct.getSku()).thenReturn("fakeSku");
-        assertThat(priceService.calculateHourlyPrice(fakeSku, "Frankfurt", 1), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(order, 1), Matchers.closeTo(-1.0, 0.00000));
     }
 
     @Test
@@ -55,12 +61,23 @@ public class PriceServiceContextTest {
 
     @Test
     public void calculateHourlyPriceForNonExistingProduct_returnErrorValue() throws Exception {
-        assertThat(priceService.calculateHourlyPrice("nonExistingTShirtSize", "Frankfurt"), Matchers.closeTo(-1.0, 0.00000));
-        assertThat(priceService.calculateHourlyPrice("d2.xlarge", "new DataCenter"), Matchers.closeTo(-1.0, 0.00000));
+        OrderUcp nonExistingTShirtSize = new OrderUcp("nonExistingTShirtSize", "Frankfurt");
+        OrderUcp newDataCenter = new OrderUcp("d2.xlarge", "new DataCenter");
+        assertThat(priceService.calculateHourlyPrice(nonExistingTShirtSize), Matchers.closeTo(-1.0, 0.00000));
+        assertThat(priceService.calculateHourlyPrice(newDataCenter), Matchers.closeTo(-1.0, 0.00000));
     }
 
     @Test
-    public void priceOfT2LargeInOregonFor24Hours_shouldBe() throws Exception {
-        assertThat(priceService.calculateHourlyPrice("t2.large", "Oregon", 24), Matchers.closeTo(4.656, 0.000001));
+    public void priceOf_T2Large_Oregon_DefaultOS_For24Hours_shouldBe() throws Exception {
+        assertThat(priceService.calculateHourlyPrice(new OrderUcp("t2.large", "Oregon"), 24), Matchers.closeTo(4.656, 0.000001));
+    }
+
+    @Test
+    public void eachOsHasDifferentPrice() throws Exception {
+        Collection<Double> prices = Arrays.stream(OSType.values())
+                .map(os -> new OrderUcp("t2.large", "Oregon", os))
+                .map(priceService::calculateHourlyPrice)
+                .collect(Collectors.toSet());
+        assertThat(prices, hasSize(4));
     }
 }
