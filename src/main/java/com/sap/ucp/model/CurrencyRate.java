@@ -9,7 +9,7 @@ public class CurrencyRate {
     private String date;
 
     @JsonProperty("rates")
-    private Rate rate;
+    private Rates rates;
 
     /**
      * KEEP THIS CONSTRUCTOR FOR JACKSON
@@ -17,10 +17,10 @@ public class CurrencyRate {
     public CurrencyRate() {
     }
 
-    public CurrencyRate(String base, String date, double rate) {
+    public CurrencyRate(String base, String date, double rates) {
         this.base = base;
         this.date = date;
-        this.rate = new Rate(rate);
+        this.rates = new Rates(rates);
     }
 
     public String getBase() {
@@ -31,20 +31,20 @@ public class CurrencyRate {
         return date;
     }
 
-    public double getRate() {
-        return rate.getExchangeRate();
+    public double getRates() {
+        return rates.getExchangeRate();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public class Rate {
-        @JsonProperty("EUR")
+    public class Rates {
+        @JsonProperty("USD")
         private double rate;
 
-        public Rate(double rate) {
+        public Rates(double rate) {
             this.rate = rate;
         }
 
-        public Rate() {
+        public Rates() {
         }
 
         public double getExchangeRate() {

@@ -47,12 +47,12 @@ public class CurrencyServiceCacheTest {
     private Cache cache;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         cache = assertCacheIsEmpty();
     }
 
     @Test
-    public void getX_cacheX() throws Exception {
+    public void getX_cacheX() {
         when(restTemplate.getForObject(anyString(), eq(CurrencyRate.class)))
                 .thenReturn(new CurrencyRate("test", "TDD_DATA", 0.777))
                 .thenReturn(new CurrencyRate("test", "TDD_DATA", 0.888));
@@ -78,7 +78,7 @@ public class CurrencyServiceCacheTest {
     }
 
     @Test
-    public void expThrown_cacheNone() throws Exception {
+    public void expThrown_cacheNone() {
         when(restTemplate.getForObject(anyString(), eq(CurrencyRate.class)))
                 .thenThrow(RestClientException.class)
                 .thenReturn(new CurrencyRate("test", "TDD_DATA", 0.888));

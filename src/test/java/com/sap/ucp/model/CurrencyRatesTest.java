@@ -17,18 +17,18 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = ApplicationTestConfiguration.class)
 @JsonTest
-public class CurrencyRateTest {
+public class CurrencyRatesTest {
 
     @Autowired
     private JacksonTester<CurrencyRate> json;
 
     @Test
     public void testDeserialize() throws Exception {
-        String content = "{\"base\":\"USD\",\"date\":\"2017-08-23\",\"rates\":{\"EUR\":0.84753}}";
+        String content = "{\"base\":\"EUR\",\"date\":\"2017-08-23\",\"rates\":{\"USD\":1.84753}}";
         ObjectContent<CurrencyRate> parse = json.parse(content);
         CurrencyRate rate = parse.getObject();
-        assertThat(rate.getBase(), is("USD"));
+        assertThat(rate.getBase(), is("EUR"));
         assertThat(rate.getDate(), is("2017-08-23"));
-        assertThat(rate.getRate(), closeTo(0.84753, 0.0001));
+        assertThat(rate.getRates(), closeTo(1.84753, 0.0001));
     }
 }

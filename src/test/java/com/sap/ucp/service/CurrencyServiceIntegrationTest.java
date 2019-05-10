@@ -30,7 +30,7 @@ public class CurrencyServiceIntegrationTest {
     private ICurrencyService currencyService;
 
     @Test
-    public void getEuroCurrencyFromDollarIntegratedWithInternet() throws Exception {
+    public void getEuroCurrencyFromDollarIntegratedWithInternet() {
         Double currency = currencyService.getEuroCurrencyFromDollar();
         assertThat(currency, Matchers.greaterThan(0.000));
     }

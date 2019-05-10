@@ -9,6 +9,7 @@ import com.sap.ucp.parsers.strategy.PriceStrategy;
 import com.sap.ucp.parsers.strategy.ProductStrategy;
 import com.sap.ucp.utils.OSUtil;
 import com.sap.ucp.validator.OrderValidator;
+import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,20 +31,20 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class PriceService {
 
-    public static final String NO_INSTALLED_SOFTWARE = "NA";
-    public static final String PRODUCTS_EC2_FILE_NAME = "products_ec2.minify.json";
-    public static final String TERMS_EC2_FILE_NAME = "terms_ec2.minify.json";
+    private static final String NO_INSTALLED_SOFTWARE = "NA";
+    private static final String PRODUCTS_EC2_FILE_NAME = "products_ec2.minify.json";
+    private static final String TERMS_EC2_FILE_NAME = "terms_ec2.minify.json";
     public static final double ERROR_PRICE = -1.0;
-    public static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
+    private static final List<String> EMPTY_STRING_LIST = Collections.emptyList();
     private Map<String, Map<String, List<Product>>> productsMap;
-    private Map<String, Price> pricesMap;
+    private Map<String, Price> pricesMap = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(PriceService.class);
 
-    protected Map<String, Map<String, List<Product>>> getProductsMap() {
+    Map<String, Map<String, List<Product>>> getProductsMap() {
         return productsMap;
     }
 
-    protected Map<String, Price> getPricesMap() {
+    Map<String, Price> getPricesMap() {
         return pricesMap;
     }
 
@@ -75,15 +76,15 @@ public class PriceService {
     }
 
     private <T> Stream<T> getStreamFromFile(JsonStrategy<T> strategy, String jsonFileName) {
-        logger.debug("Starting to access resource from disk " + jsonFileName);
+        logger.debug("Starting to access resource from disk {}", jsonFileName);
         InputStream productsStream = getClass().getClassLoader().getResourceAsStream(jsonFileName);
-        logger.debug("got stream to " + jsonFileName + " isNull? " + (null == productsStream));
+        logger.debug("got stream to {} isNull? {}", jsonFileName, null == productsStream);
         JsonSteamDataSupplier<T> supplier = new JsonSteamDataSupplier<>(productsStream, strategy);
-        logger.debug("Finished accessing resource from disk " + jsonFileName);
+        logger.debug("Finished accessing resource from disk {}", jsonFileName);
         return supplier.getStream();
     }
 
-    public double calculateHourlyPrice(OrderUcp order) {
+    double calculateHourlyPrice(OrderUcp order) {
         return calculateHourlyPrice(order, 1);
     }
 
@@ -96,15 +97,15 @@ public class PriceService {
         return hours * getHourlyPrice(skus);
     }
 
-    protected Collection<String> getProductSkus(OrderUcp order) {
+    Collection<String> getProductSkus(OrderUcp order) {
         String tShirtSize = order.gettShirtSize();
         if (!productsMap.containsKey(tShirtSize)) {
-            logger.warn(String.format("There is no product with TShirt size '%s'", tShirtSize));
+            logger.warn("There is no product with TShirt size '{}'", tShirtSize);
             return EMPTY_STRING_LIST;
         }
         List<String> skus = productsMap.entrySet().stream()
                 .filter(entry -> entry.getKey().equals(tShirtSize))
-                .map(entry -> entry.getValue())
+                .map(Entry::getValue)
                 .map(map -> map.get(order.getRegion().toLowerCase()))
                 .filter(Objects::nonNull)
                 .flatMap(List::stream)
@@ -112,13 +113,13 @@ public class PriceService {
                 .map(Product::getSku)
                 .collect(toList());
         if (CollectionUtils.isEmpty(skus)) {
-            logger.warn(String.format("There is no product with TShirt size '%s' at region '%s'", tShirtSize, order.getRegion()));
+            logger.warn("There is no product with TShirt size '{}' at region '{}'", tShirtSize, order.getRegion());
             return EMPTY_STRING_LIST;
         }
         return skus;
     }
 
-    protected double getHourlyPrice(Collection<String> skus) {
+    double getHourlyPrice(Collection<String> skus) {
         List<String> existingSkus = skus.stream().filter(s -> pricesMap.containsKey(s)).collect(toList());
         if (CollectionUtils.isEmpty(existingSkus))
             return ERROR_PRICE;
@@ -128,7 +129,7 @@ public class PriceService {
                 .max();
         double returnedPrice = max.orElse(ERROR_PRICE);
         if (returnedPrice <= 0) {
-            logger.warn(String.format("Hourly price of product with SKU '%s' is not positive (%s)", skus, returnedPrice));
+            logger.warn("Hourly price of product with SKU '{}' is not positive ({})", skus, returnedPrice);
             returnedPrice = ERROR_PRICE;
         }
         return  returnedPrice;
