@@ -1,22 +1,21 @@
 package com.sap.ucp.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.sap.ucp.model.OrderUcp;
 import com.sap.ucp.model.PriceEstimation;
 import com.sap.ucp.types.OSType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.LocalServerPort;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

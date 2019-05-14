@@ -2,38 +2,32 @@ package com.sap.ucp.service;
 
 import static org.hamcrest.Matchers.closeTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.sap.ucp.config.PropertiesResolver;
+import com.sap.ucp.accessors.CurrencyExchangeAccessor;
 import com.sap.ucp.model.CurrencyRate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.web.client.RestTemplate;
+import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class CurrencyServiceModuleTest {
 
     @Mock
-    RestTemplate restTemplate;
-    @Mock
-    PropertiesResolver propertiesResolver;
+    CurrencyExchangeAccessor currencyExchangeAccessor;
 
     private ICurrencyService currencyService;
 
     @Before
     public void setUp() {
-        when(propertiesResolver.getProperty(anyString())).thenReturn("mockedAccessKey");
-        currencyService = new CurrencyService(restTemplate, propertiesResolver);
+        currencyService = new CurrencyService(currencyExchangeAccessor);
     }
 
     @Test
     public void getEuroCurrencyFromDollar() {
-        when(restTemplate.getForObject(anyString(), eq(CurrencyRate.class)))
+        when(currencyExchangeAccessor.getEuroCurrency())
                 .thenReturn(new CurrencyRate("usd", "2017-06-01", 0.764));
 
         Double currency = currencyService.getEuroCurrencyFromDollar();

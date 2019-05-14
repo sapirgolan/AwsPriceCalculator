@@ -55,7 +55,7 @@ public class PriceControllerWebTest {
     public void whenExceptionThrown_defaultErrorHandling() throws Exception {
         OrderUcp orderUcp = new OrderUcp("t2.medium", "roosevelt");
         when(priceService.calculateHourlyPrice(eq(orderUcp), anyInt()))
-                .thenThrow(IOException.class);
+                .thenThrow(RuntimeException.class);
 
         MockHttpServletRequestBuilder content = post(PriceController.REST_NAME)
                 .contentType(MediaType.APPLICATION_JSON)

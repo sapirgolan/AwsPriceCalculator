@@ -108,7 +108,6 @@ public class PriceServiceTest {
     public void whenTShirtNotExistsAtRegion_returnEmptyCollection() {
         String tShirtSize = "fakeTShirstSize";
         when(productsMap.containsKey(tShirtSize)).thenReturn(true);
-        when(productsMap.get(tShirtSize)).thenReturn(mock(Map.class));
 
         Collection<String> skus = priceService.getProductSkus(new OrderUcp(tShirtSize, "fakeRegion"));
         assertThat(skus).isEmpty();
